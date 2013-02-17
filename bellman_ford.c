@@ -63,6 +63,22 @@ static void initEdge(EDGE* edge, int x, int y, int add) {
     edge->weight = 1;
 }
 
+/**
+ * @brief remove an edge between two cells
+ */
+void removeEdge(int sx, int sy, int dx, int dy){
+    int i;
+    for(i=0; i<graph.E; i++){
+        if(graph.edges[i]->src == GRID_CELL(sx,sy) && graph.edges[i]->dst == GRID_CELL(dx,dy)){
+            free(graph.edges[i]);
+            if(i<(graph.E-1))
+                memmove(&graph.edges[i], &graph.edges[i+1], ((graph.E-1)-i)*sizeof(EDGE*));
+            graph.E--;
+            return;
+        }
+    }
+}
+
 void initializeGrid(void) {
 
     graph.nodes = malloc(sizeof (NODE*) * WIDTH * HEIGHT);

@@ -11,6 +11,8 @@
 #define WIDTH (10)
 #define HEIGHT (10)
 
+#define GRID_CELL(x,y) (x+WIDTH*y)
+
 typedef struct {
     unsigned int dist;
     void *parent;
@@ -38,6 +40,7 @@ void initializeGrid(void);
 void bellman_ford(unsigned int startX, unsigned int startY);
 void printRoute(int strtX, int strtY, int dstX, int dstY);
 void deinitializeGrid(void);
+void removeEdge(int sx, int sy, int dx, int dy);
 
 #endif	/* BELLMAN_FORD_H */
 
