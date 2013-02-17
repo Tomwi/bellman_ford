@@ -30,25 +30,39 @@ typedef struct {
     EDGE ** edges;
 } GRAPH;
 
-GRAPH graph;
+typedef struct{
+    NODE *self;
+    void *nextElement;
+}LIST_ELEMENT;
 
+GRAPH graph;
+LIST_ELEMENT *route;
 int edgC;
 
-void printEdges(void) {
-    int i;
-    for (i = 0; i < graph.E; i++) {
-        printf("%d, %d -> %d = %d\n", i, graph.edges[i]->src, graph.edges[i]->dst, graph.edges[i]->weight);
+LIST_ELEMENT* traceRoute(int startX, int startY, int dstX, int dstY){
+    NODE *d = graph.nodes[dstX+dstY*WIDTH];
+    NODE *s = graph.nodes[startX+startY*WIDTH];
+    LIST_ELEMENT *route = malloc(sizeof(LIST_ELEMENT));
+    LIST_ELEMENT *tmp = route;
+    tmp->self = d;
+    while(((NODE*) d->parent)->no != startX+startY*WIDTH){
+        tmp->nextElement = malloc(sizeof(LIST_ELEMENT));
+        tmp = ((LIST_ELEMENT*)tmp)->nextElement;
+        tmp->self = ((NODE*) d->parent);
+        tmp->nextElement = NULL;
+        d = d->parent; 
     }
+    return route;
 }
 
-void printGrid(void) {
-    int i, j;
-    for (j = 0; j < HEIGHT; j++) {
-        for (i = 0; i < WIDTH; i++) {
-            printf("%d ", graph.nodes[i + j * WIDTH]->dist);
-        }
-        printf("\n");
+int inRoute(NODE *node, LIST_ELEMENT *route){
+    
+    while(route->self != node){
+        route = ((LIST_ELEMENT*)route)->nextElement;
+        if(route==NULL)
+            return 0;
     }
+    return 1;
 }
 
 void initEdge(EDGE* edge, int x, int y, int add) {
@@ -124,16 +138,16 @@ void bellman_ford(unsigned int startX, unsigned int startY) {
 void printRoute(int strtX, int strtY, int dstX, int dstY) {
     NODE *n = graph.nodes[dstX + dstY * WIDTH];
     NODE *s = graph.nodes[strtX + strtY * WIDTH];
-
+    LIST_ELEMENT *rt = traceRoute(strtX,strtY,dstX,dstY);
     int i, j;
     for (j = 0; j < HEIGHT; j++) {
         for (i = 0; i < WIDTH; i++) {
-            if (((NODE*) n->parent)->no == i + j * WIDTH) {
-                printf("_%.2d_ ", graph.nodes[i + j * WIDTH]->dist);
-                n = n->parent;
-            } else
-                printf(" %.2d  ", graph.nodes[i + j * WIDTH]->dist);
-
+            if(inRoute(graph.nodes[i + j * WIDTH],rt)){
+                printf("*");
+            }
+            else
+                printf(" ");
+            printf("%.2d  ", graph.nodes[i + j * WIDTH]->dist);
         }
         printf("\n");
     }
@@ -141,8 +155,8 @@ void printRoute(int strtX, int strtY, int dstX, int dstY) {
 
 int main(int argc, char** argv) {
     initializeGrid();
-    bellman_ford(9, 9);
-    printRoute(9, 9, 0, 0);
+    bellman_ford(5, 4);
+    printRoute(5, 4, 3, 9);
     return (EXIT_SUCCESS);
 }
 
