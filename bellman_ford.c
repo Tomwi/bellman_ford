@@ -41,9 +41,9 @@ static int inRoute(NODE *node, LIST_ELEMENT *route) {
     return 1;
 }
 
-void freeRoute(LIST_ELEMENT* route){
+void freeRoute(LIST_ELEMENT* route) {
     LIST_ELEMENT* tmp = route;
-    while(route->nextElement){
+    while (route->nextElement) {
         tmp = route;
         route = route->nextElement;
         free(tmp);
@@ -60,19 +60,29 @@ void freeRoute(LIST_ELEMENT* route){
 static void initEdge(EDGE* edge, int x, int y, int add) {
     edge->src = x + y*WIDTH;
     edge->dst = edge->src + add;
-    edge->weight = 1;
+    edge->weight = 10;
+}
+
+int findEdge(int sx, int sy, int dx, int dy) {
+    int i;
+    for (i = 0; i < graph.E; i++) {
+        if (graph.edges[i]->src == GRID_CELL(sx, sy) && graph.edges[i]->dst == GRID_CELL(dx, dy)) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 /**
  * @brief remove an edge between two cells
  */
-void removeEdge(int sx, int sy, int dx, int dy){
-    int i;
-    for(i=0; i<graph.E; i++){
-        if(graph.edges[i]->src == GRID_CELL(sx,sy) && graph.edges[i]->dst == GRID_CELL(dx,dy)){
-            free(graph.edges[i]);
-            if(i<(graph.E-1))
-                memmove(&graph.edges[i], &graph.edges[i+1], ((graph.E-1)-i)*sizeof(EDGE*));
+void removeEdge(int sx, int sy, int dx, int dy) {
+    int i, tmp = 0;
+    for (i = 0; i < graph.E; i++) {
+        if ((tmp = findEdge(sx, sy, dx, dy)) >= 0) {
+            free(graph.edges[tmp]);
+            if (tmp < (graph.E - 1))
+                memmove(&graph.edges[tmp], &graph.edges[tmp + 1], ((graph.E - 1) - tmp) * sizeof (EDGE*));
             graph.E--;
             return;
         }
@@ -112,6 +122,7 @@ void initializeGrid(void) {
             }
             // no lower edge when y = HEIGHT-1
             if (j != (HEIGHT - 1)) {
+
                 graph.edges[graph.E] = malloc(sizeof (EDGE));
                 initEdge(graph.edges[graph.E], i, j, WIDTH);
                 graph.E++;
@@ -121,14 +132,26 @@ void initializeGrid(void) {
     graph.N = WIDTH*HEIGHT;
 }
 
-void deinitializeGrid(void){
+void deinitializeGrid(void) {
     int i;
-    for(i=0; i<graph.N; i++){
+    for (i = 0; i < graph.N; i++) {
         free(graph.nodes[i]);
     }
-    for(i=0; i<graph.E; i++){
+    for (i = 0; i < graph.E; i++) {
+
         free(graph.edges[i]);
     }
+}
+
+int findNode(void* node) {
+    int i;
+    if (node) {
+        for (i = 0; i < graph.N; i++) {
+            if (graph.nodes[i] == ((NODE*) node))
+                return graph.nodes[i]->no;
+        }
+    }
+    return -1;
 }
 
 /**
@@ -146,11 +169,28 @@ void bellman_ford(unsigned int startX, unsigned int startY) {
     // update the distances for each node
     for (i = 1; i <= V - 1; i++) {
         for (j = 0; j < E; j++) {
+            int penalty = 0;
+
             int u = graph.edges[j]->src;
             int v = graph.edges[j]->dst;
-            unsigned int weight = graph.edges[j]->weight;
+
+            int parent = -1;
+
+            parent = findNode(graph.nodes[u]->parent);
+
+            int dir = 0;
+            if (parent >= 0) {
+                dir = u - parent;
+            }
+
+            if ((v - u) != dir && dir != 0) {
+
+                penalty = 5;
+            }
+
+            unsigned int weight = graph.edges[j]->weight + penalty;
             // if we can reach this cell faster, update the parent and distance
-            if (graph.nodes[u]->dist + weight < graph.nodes[v]->dist) {
+            if ((graph.nodes[u]->dist + weight) < graph.nodes[v]->dist) {
                 graph.nodes[v]->dist = graph.nodes[u]->dist + weight;
                 graph.nodes[v]->parent = graph.nodes[u];
             }
@@ -176,9 +216,21 @@ void printRoute(int strtX, int strtY, int dstX, int dstY) {
                 printf("*");
             } else
                 printf(" ");
-            printf("%.2d  ", graph.nodes[i + j * WIDTH]->dist);
+            printf("%.2d  ", GRID_CELL(i, j)); //graph.nodes[GRID_CELL(i, j)]->dist);
+
+            if (findEdge(i, j, i + 1, j) >= 0)
+                printf("- ");
+            else
+                printf("  ");
         }
         // print a newline to seperate the rows of the grid
+        printf("\n");
+        for (i = 0; i < WIDTH; i++) {
+            if (findEdge(i, j, i, j + 1) >= 0)
+                printf("  |    ");
+            else
+                printf("       ");
+        }
         printf("\n");
     }
     freeRoute(rt);

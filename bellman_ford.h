@@ -41,6 +41,6 @@ void bellman_ford(unsigned int startX, unsigned int startY);
 void printRoute(int strtX, int strtY, int dstX, int dstY);
 void deinitializeGrid(void);
 void removeEdge(int sx, int sy, int dx, int dy);
-
+int findEdge(int sX, int sY, int dX, int dY);
 #endif	/* BELLMAN_FORD_H */
 

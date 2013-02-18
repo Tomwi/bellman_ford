@@ -14,11 +14,12 @@
 int main(int argc, char** argv) {
     // initialize a 10x10 grid
     initializeGrid();
-    removeEdge(0, 0, 1, 0);
+    removeEdge(0, 0, 0, 1);
+   
     // apply the algorithm with starting cell 0,0
     bellman_ford(0, 0);
-    // print the shortest path between cell 0,0 and cell 1,0
-    printRoute(0, 0, 1, 0);
+    
+    printRoute(0, 0, 9, 9);
     // free used resources for building up the grid
     deinitializeGrid();
     return (EXIT_SUCCESS);
