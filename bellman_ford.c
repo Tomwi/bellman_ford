@@ -31,6 +31,7 @@ LIST_ELEMENT* traceRoute(int startX, int startY, int dstX, int dstY) {
     return route;
 }
 
+// checks wether the given NODE is in the generated route list
 static int inRoute(NODE *node, LIST_ELEMENT *route) {
     // as long as the current node isn't equal to the node we're seeking
     while (route->self != node) {
@@ -41,6 +42,7 @@ static int inRoute(NODE *node, LIST_ELEMENT *route) {
     return 1;
 }
 
+// free all the allocated resources used by traceRoute
 void freeRoute(LIST_ELEMENT* route) {
     LIST_ELEMENT* tmp = route;
     while (route->nextElement) {
@@ -63,6 +65,7 @@ static void initEdge(EDGE* edge, int x, int y, int add) {
     edge->weight = 10;
 }
 
+// return the index of the edge found in graph.edges 
 int findEdge(int sx, int sy, int dx, int dy) {
     int i;
     for (i = 0; i < graph.E; i++) {
@@ -92,7 +95,7 @@ void removeEdge(int sx, int sy, int dx, int dy) {
 void initializeGrid(void) {
 
     graph.nodes = malloc(sizeof (NODE*) * WIDTH * HEIGHT);
-    // is less in a grid
+    // is less in a grid, but well this works
     graph.edges = malloc(sizeof (EDGE*) * WIDTH * HEIGHT * 4);
     int i, j;
     for (i = 0; i < WIDTH; i++) {
@@ -132,6 +135,7 @@ void initializeGrid(void) {
     graph.N = WIDTH*HEIGHT;
 }
 
+// Free allocated resources used for initializing the grid
 void deinitializeGrid(void) {
     int i;
     for (i = 0; i < graph.N; i++) {
@@ -141,8 +145,11 @@ void deinitializeGrid(void) {
 
         free(graph.edges[i]);
     }
+    free(graph.nodes);
+    free(graph.edges);
 }
 
+// find the given node in the graph
 int findNode(void* node) {
     int i;
     if (node) {
@@ -151,6 +158,7 @@ int findNode(void* node) {
                 return graph.nodes[i]->no;
         }
     }
+    // not found
     return -1;
 }
 
@@ -173,7 +181,9 @@ void bellman_ford(unsigned int startX, unsigned int startY) {
 
             int u = graph.edges[j]->src;
             int v = graph.edges[j]->dst;
-
+            /* Check for turning: if previous dir != dir, we're turning and as 
+             * turning takes longer than going in a straigh line, add a penalty
+             */
             int parent = -1;
 
             parent = findNode(graph.nodes[u]->parent);
@@ -212,11 +222,12 @@ void printRoute(int strtX, int strtY, int dstX, int dstY) {
     for (j = 0; j < HEIGHT; j++) {
         for (i = 0; i < WIDTH; i++) {
             // if this cell is on the shortes path, mark it
-            if (inRoute(graph.nodes[i + j * WIDTH], rt)) {
+            if ((inRoute(graph.nodes[i + j * WIDTH], rt)) || (i == strtX && j == strtY)) {
                 printf("*");
-            } else
+            }
+            else
                 printf(" ");
-            printf("%.2d  ", GRID_CELL(i, j)); //graph.nodes[GRID_CELL(i, j)]->dist);
+            printf("%.2d  ", GRID_CELL(i, j)); 
 
             if (findEdge(i, j, i + 1, j) >= 0)
                 printf("- ");

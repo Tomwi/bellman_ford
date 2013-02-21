@@ -15,6 +15,7 @@ int main(int argc, char** argv) {
     // initialize a 10x10 grid
     initializeGrid();
     removeEdge(0, 0, 0, 1);
+    removeEdge(8, 0, 9, 0);
    
     // apply the algorithm with starting cell 0,0
     bellman_ford(0, 0);
