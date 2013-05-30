@@ -21,7 +21,10 @@ nbproject/
 *.out
 *.pdf
 *.toc
-
+*.d
+*.o
+*.project
+bellman
 
 log.txt
 
